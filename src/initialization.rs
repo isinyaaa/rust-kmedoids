@@ -18,7 +18,7 @@
 #[cfg(feature = "rand")]
 #[inline]
 pub fn random_initialization(n: usize, k: usize, rng: &mut impl rand::Rng) -> Vec<usize> {
-	rand::seq::index::sample(rng, n, k).into_vec()
+    rand::seq::index::sample(rng, n, k).into_vec()
 }
 
 /// Use the first objects as initial medoids.
@@ -36,5 +36,5 @@ pub fn random_initialization(n: usize, k: usize, rng: &mut impl rand::Rng) -> Ve
 /// ```
 #[inline]
 pub fn first_k(k: usize) -> Vec<usize> {
-	(0..k).collect()
+    (0..k).collect()
 }

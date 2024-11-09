@@ -39,25 +39,25 @@ use std::convert::From;
 /// ```
 pub fn alternating<M, N, L>(mat: &M, med: &mut [usize], maxiter: usize) -> (L, Vec<usize>, usize)
 where
-	N: Zero + PartialOrd + Clone,
-	L: AddAssign + Signed + Zero + PartialOrd + Clone + From<N>,
-	M: ArrayAdapter<N>,
+    N: Zero + PartialOrd + Clone,
+    L: AddAssign + Signed + Zero + PartialOrd + Clone + From<N>,
+    M: ArrayAdapter<N>,
 {
-	let mut assi = vec![usize::MAX; mat.len()];
-	let mut loss: L = assign_nearest(mat, med, &mut assi);
-	let mut iter = 0;
-	while iter < maxiter {
-		iter += 1;
-		let mut changed = false;
-		for i in 0..med.len() {
-			changed |= choose_medoid_within_partition::<M, N, L>(mat, &assi, med, i).0;
-		}
-		if !changed {
-			break;
-		}
-		loss = assign_nearest(mat, med, &mut assi);
-	}
-	(loss, assi, iter)
+    let mut assi = vec![usize::MAX; mat.len()];
+    let mut loss: L = assign_nearest(mat, med, &mut assi);
+    let mut iter = 0;
+    while iter < maxiter {
+        iter += 1;
+        let mut changed = false;
+        for i in 0..med.len() {
+            changed |= choose_medoid_within_partition::<M, N, L>(mat, &assi, med, i).0;
+        }
+        if !changed {
+            break;
+        }
+        loss = assign_nearest(mat, med, &mut assi);
+    }
+    (loss, assi, iter)
 }
 
 /// Assign each to the nearest medoid, return loss
@@ -65,53 +65,53 @@ where
 #[allow(clippy::or_fun_call)] // zero() is fine
 pub(crate) fn assign_nearest<M, N, L>(mat: &M, med: &[usize], data: &mut [usize]) -> L
 where
-	N: PartialOrd + Clone,
-	L: AddAssign + Signed + Zero + PartialOrd + Clone + From<N>,
-	M: ArrayAdapter<N>,
+    N: PartialOrd + Clone,
+    L: AddAssign + Signed + Zero + PartialOrd + Clone + From<N>,
+    M: ArrayAdapter<N>,
 {
-	let n = mat.len();
-	let k = med.len();
-	assert!(mat.is_square(), "Dissimilarity matrix is not square");
-	assert!(n <= u32::MAX as usize, "N is too large");
-	assert!(k > 0 && k < u32::MAX as usize, "invalid N");
-	assert!(k <= n, "k must be at most N");
-	debug_assert!(data.len() == n, "data not preallocated");
-	let firstcenter = med[0];
-	data.iter_mut()
-		.enumerate()
-		.map(|(i, di)| {
-			let mut best = (0, mat.get(i, firstcenter));
-			for (m, &mm) in med.iter().enumerate().skip(1) {
-				let dm = mat.get(i, mm);
-				if dm < best.1 || i == mm {
-					best = (m, dm);
-				}
-			}
-			*di = best.0;
-			L::from(best.1)
-		})
-		.reduce(L::add)
-		.unwrap_or(L::zero())
+    let n = mat.len();
+    let k = med.len();
+    assert!(mat.is_square(), "Dissimilarity matrix is not square");
+    assert!(n <= u32::MAX as usize, "N is too large");
+    assert!(k > 0 && k < u32::MAX as usize, "invalid N");
+    assert!(k <= n, "k must be at most N");
+    debug_assert!(data.len() == n, "data not preallocated");
+    let firstcenter = med[0];
+    data.iter_mut()
+        .enumerate()
+        .map(|(i, di)| {
+            let mut best = (0, mat.get(i, firstcenter));
+            for (m, &mm) in med.iter().enumerate().skip(1) {
+                let dm = mat.get(i, mm);
+                if dm < best.1 || i == mm {
+                    best = (m, dm);
+                }
+            }
+            *di = best.0;
+            L::from(best.1)
+        })
+        .reduce(L::add)
+        .unwrap_or(L::zero())
 }
 
 #[cfg(test)]
 mod tests {
-	// TODO: use a larger, much more interesting example.
-	use crate::{alternating, arrayadapter::LowerTriangle, silhouette, util::assert_array};
+    // TODO: use a larger, much more interesting example.
+    use crate::{alternating, arrayadapter::LowerTriangle, silhouette, util::assert_array};
 
-	#[test]
-	fn test_alternating() {
-		let data = LowerTriangle {
-			n: 5,
-			data: vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 1],
-		};
-		let mut meds = vec![0, 1];
-		let (loss, assi, n_iter): (i64, _, _) = alternating(&data, &mut meds, 10);
-		let (sil, _): (f64, _) = silhouette(&data, &assi, false);
-		assert_eq!(n_iter, 3, "iterations not as expected");
-		assert_eq!(loss, 4, "loss not as expected");
-		assert_array(assi, vec![1, 1, 1, 0, 0], "assignment not as expected");
-		assert_array(meds, vec![3, 0], "medoids not as expected");
-		assert_eq!(sil, 0.7522494172494172, "Silhouette not as expected");
-	}
+    #[test]
+    fn test_alternating() {
+        let data = LowerTriangle {
+            n: 5,
+            data: vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 1],
+        };
+        let mut meds = vec![0, 1];
+        let (loss, assi, n_iter): (i64, _, _) = alternating(&data, &mut meds, 10);
+        let (sil, _): (f64, _) = silhouette(&data, &assi, false);
+        assert_eq!(n_iter, 3, "iterations not as expected");
+        assert_eq!(loss, 4, "loss not as expected");
+        assert_array(assi, vec![1, 1, 1, 0, 0], "assignment not as expected");
+        assert_array(meds, vec![3, 0], "medoids not as expected");
+        assert_eq!(sil, 0.7522494172494172, "Silhouette not as expected");
+    }
 }

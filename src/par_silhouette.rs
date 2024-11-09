@@ -43,53 +43,53 @@ use std::convert::From;
 #[cfg(feature = "parallel")]
 pub fn par_silhouette<M, N, L>(mat: &M, assi: &[usize]) -> L
 where
-	N: Zero + PartialOrd + Clone + Sync + Send,
-	L: AddAssign
-		+ Div<Output = L>
-		+ Sub<Output = L>
-		+ Signed
-		+ Zero
-		+ PartialOrd
-		+ Clone
-		+ From<N>
-		+ From<u32>
-		+ Sync
-		+ Send,
-	M: ArrayAdapter<N> + Sync + Send,
+    N: Zero + PartialOrd + Clone + Sync + Send,
+    L: AddAssign
+        + Div<Output = L>
+        + Sub<Output = L>
+        + Signed
+        + Zero
+        + PartialOrd
+        + Clone
+        + From<N>
+        + From<u32>
+        + Sync
+        + Send,
+    M: ArrayAdapter<N> + Sync + Send,
 {
-	let mut lsum = L::zero();
-	assert!(mat.is_square(), "Dissimilarity matrix is not square");
-	assi.into_par_iter()
-		.enumerate()
-		.map(|(i, &ai)| {
-			let mut buf = Vec::<(u32, L)>::new();
-			buf.clear();
-			for (j, &aj) in assi.iter().enumerate() {
-				while aj >= buf.len() {
-					buf.push((0, L::zero()));
-				}
-				if i != j {
-					buf[aj].0 += 1;
-					buf[aj].1 += mat.get(i, j).into();
-				}
-			}
-			if buf[ai].0 > 0 {
-				let a = checked_div(buf[ai].1.clone(), buf[ai].0.into());
-				let mut tmp = buf
-					.iter()
-					.enumerate()
-					.filter(|&(i, _)| i != ai)
-					.map(|(_, p)| checked_div(p.1.clone(), p.0.into()));
-				// Ugly hack to get the min():
-				let tmp2 = tmp.next().unwrap_or_else(L::zero);
-				let b = tmp.fold(tmp2, |x, y| if y < x { y } else { x });
-				checked_div(b.clone() - a.clone(), if a > b { a } else { b }) // return value
-			} else {
-				L::zero() // singleton
-			}
-		})
-		.collect::<Vec<L>>()
-		.iter()
-		.for_each(|x| lsum += x.clone());
-	lsum.div((assi.len() as u32).into())
+    let mut lsum = L::zero();
+    assert!(mat.is_square(), "Dissimilarity matrix is not square");
+    assi.into_par_iter()
+        .enumerate()
+        .map(|(i, &ai)| {
+            let mut buf = Vec::<(u32, L)>::new();
+            buf.clear();
+            for (j, &aj) in assi.iter().enumerate() {
+                while aj >= buf.len() {
+                    buf.push((0, L::zero()));
+                }
+                if i != j {
+                    buf[aj].0 += 1;
+                    buf[aj].1 += mat.get(i, j).into();
+                }
+            }
+            if buf[ai].0 > 0 {
+                let a = checked_div(buf[ai].1.clone(), buf[ai].0.into());
+                let mut tmp = buf
+                    .iter()
+                    .enumerate()
+                    .filter(|&(i, _)| i != ai)
+                    .map(|(_, p)| checked_div(p.1.clone(), p.0.into()));
+                // Ugly hack to get the min():
+                let tmp2 = tmp.next().unwrap_or_else(L::zero);
+                let b = tmp.fold(tmp2, |x, y| if y < x { y } else { x });
+                checked_div(b.clone() - a.clone(), if a > b { a } else { b }) // return value
+            } else {
+                L::zero() // singleton
+            }
+        })
+        .collect::<Vec<L>>()
+        .iter()
+        .for_each(|x| lsum += x.clone());
+    lsum.div((assi.len() as u32).into())
 }

@@ -40,59 +40,59 @@ use std::convert::From;
 /// ```
 pub fn silhouette<M, N, L>(mat: &M, assi: &[usize], samples: bool) -> (L, Vec<L>)
 where
-	N: Zero + PartialOrd + Clone,
-	L: AddAssign
-		+ Div<Output = L>
-		+ Sub<Output = L>
-		+ Signed
-		+ Zero
-		+ PartialOrd
-		+ Clone
-		+ From<N>
-		+ From<u32>,
-	M: ArrayAdapter<N>,
+    N: Zero + PartialOrd + Clone,
+    L: AddAssign
+        + Div<Output = L>
+        + Sub<Output = L>
+        + Signed
+        + Zero
+        + PartialOrd
+        + Clone
+        + From<N>
+        + From<u32>,
+    M: ArrayAdapter<N>,
 {
-	assert!(mat.is_square(), "Dissimilarity matrix is not square");
-	let mut sil =  vec![L::zero(); if samples { assi.len() } else { 0}];
-	let mut lsum: L = L::zero();
-	let mut buf = Vec::<(u32, L)>::new();
-	for (i, &ai) in assi.iter().enumerate() {
-		buf.clear();
-		for (j, &aj) in assi.iter().enumerate() {
-			while aj >= buf.len() {
-				buf.push((0, L::zero()));
-			}
-			if i != j {
-				buf[aj].0 += 1;
-				buf[aj].1 += mat.get(i, j).into();
-			}
-		}
-		if buf.len() == 1 {
-			return (L::zero(), sil);
-		}
-		let s = if buf[ai].0 > 0 {
-			let a = checked_div(buf[ai].1.clone(), buf[ai].0.into());
-			let mut tmp = buf
-				.iter()
-				.enumerate()
-				.filter(|&(i, _)| i != ai)
-				.map(|(_, p)| checked_div(p.1.clone(), p.0.into()));
-			// Ugly hack to get the min():
-			let tmp2 = tmp.next().unwrap_or_else(L::zero);
-			let b = tmp.fold(tmp2, |x, y| if y < x { y } else { x });
-			checked_div(b.clone() - a.clone(), if a > b { a } else { b })
-		} else {
-			L::zero() // singleton
-		};
-		if samples {
-			sil[i] = s.clone();
-		}
-		lsum += s.clone();
-	}
-	if samples {
-		assert_eq!(sil.len(), assi.len(), "Length not as expected.");
-	}
-	(lsum.div((assi.len() as u32).into()), sil)
+    assert!(mat.is_square(), "Dissimilarity matrix is not square");
+    let mut sil = vec![L::zero(); if samples { assi.len() } else { 0 }];
+    let mut lsum: L = L::zero();
+    let mut buf = Vec::<(u32, L)>::new();
+    for (i, &ai) in assi.iter().enumerate() {
+        buf.clear();
+        for (j, &aj) in assi.iter().enumerate() {
+            while aj >= buf.len() {
+                buf.push((0, L::zero()));
+            }
+            if i != j {
+                buf[aj].0 += 1;
+                buf[aj].1 += mat.get(i, j).into();
+            }
+        }
+        if buf.len() == 1 {
+            return (L::zero(), sil);
+        }
+        let s = if buf[ai].0 > 0 {
+            let a = checked_div(buf[ai].1.clone(), buf[ai].0.into());
+            let mut tmp = buf
+                .iter()
+                .enumerate()
+                .filter(|&(i, _)| i != ai)
+                .map(|(_, p)| checked_div(p.1.clone(), p.0.into()));
+            // Ugly hack to get the min():
+            let tmp2 = tmp.next().unwrap_or_else(L::zero);
+            let b = tmp.fold(tmp2, |x, y| if y < x { y } else { x });
+            checked_div(b.clone() - a.clone(), if a > b { a } else { b })
+        } else {
+            L::zero() // singleton
+        };
+        if samples {
+            sil[i] = s.clone();
+        }
+        lsum += s.clone();
+    }
+    if samples {
+        assert_eq!(sil.len(), assi.len(), "Length not as expected.");
+    }
+    (lsum.div((assi.len() as u32).into()), sil)
 }
 
 /// Compute the Medoid Silhouette of a clustering.
@@ -134,56 +134,59 @@ where
 /// ```
 pub fn medoid_silhouette<M, N, L>(mat: &M, meds: &[usize], samples: bool) -> (L, Vec<L>)
 where
-	N: Zero + PartialOrd + Clone,
-	L: AddAssign
-		+ Div<Output = L>
-		+ Sub<Output = L>
-		+ Signed
-		+ Zero
-		+ PartialOrd
-		+ Clone
-		+ From<N>
-		+ From<u32>,
-	M: ArrayAdapter<N>,
+    N: Zero + PartialOrd + Clone,
+    L: AddAssign
+        + Div<Output = L>
+        + Sub<Output = L>
+        + Signed
+        + Zero
+        + PartialOrd
+        + Clone
+        + From<N>
+        + From<u32>,
+    M: ArrayAdapter<N>,
 {
-	let (n, k) = (mat.len(), meds.len());
-	assert!(mat.is_square(), "Dissimilarity matrix is not square");
-	assert!(n <= u32::MAX as usize, "N is too large");
-	let mut sil = vec![L::one(); if samples { n } else { 0 }];
-	if k == 1 { return (L::one(), sil); } // not really well-defined
-	assert!(k <= n, "invalid k, must be over 1 and at most N");
-	let mut loss = L::zero();
-	#[allow(clippy::needless_range_loop)]
-	for i in 0..n {
-		let (d1, d2) = (mat.get(i, meds[0]), mat.get(i, meds[1]));
-		let mut best = if d1 < d2 { (d1, d2) } else { (d2, d1) };
-		for &m in meds.iter().skip(2) {
-			let d = mat.get(i, m);
-			if d < best.0 {
-				best = (d, best.0);
-			}
-			else if d < best.1 {
-				best = (best.0, d);
-			}
-		}
-		if !N::is_zero(&best.0) {
-			let s = <L as From<N>>::from(best.0.clone()) / <L as From<N>>::from(best.1.clone());
-			if samples { sil[i] = L::one() - s.clone(); }
-			loss += s;
-		}
-	}
-	loss = L::one() - loss / <L as From<u32>>::from(n as u32);
-	(loss, sil)
+    let (n, k) = (mat.len(), meds.len());
+    assert!(mat.is_square(), "Dissimilarity matrix is not square");
+    assert!(n <= u32::MAX as usize, "N is too large");
+    let mut sil = vec![L::one(); if samples { n } else { 0 }];
+    if k == 1 {
+        return (L::one(), sil);
+    } // not really well-defined
+    assert!(k <= n, "invalid k, must be over 1 and at most N");
+    let mut loss = L::zero();
+    #[allow(clippy::needless_range_loop)]
+    for i in 0..n {
+        let (d1, d2) = (mat.get(i, meds[0]), mat.get(i, meds[1]));
+        let mut best = if d1 < d2 { (d1, d2) } else { (d2, d1) };
+        for &m in meds.iter().skip(2) {
+            let d = mat.get(i, m);
+            if d < best.0 {
+                best = (d, best.0);
+            } else if d < best.1 {
+                best = (best.0, d);
+            }
+        }
+        if !N::is_zero(&best.0) {
+            let s = <L as From<N>>::from(best.0.clone()) / <L as From<N>>::from(best.1.clone());
+            if samples {
+                sil[i] = L::one() - s.clone();
+            }
+            loss += s;
+        }
+    }
+    loss = L::one() - loss / <L as From<u32>>::from(n as u32);
+    (loss, sil)
 }
 
 // helper function, returns 0 on division by 0
 pub(crate) fn checked_div<L>(x: L, y: L) -> L
 where
-	L: Div<Output = L> + Zero + Clone + PartialOrd,
+    L: Div<Output = L> + Zero + Clone + PartialOrd,
 {
-	if y > L::zero() {
-		x.div(y)
-	} else {
-		L::zero()
-	}
+    if y > L::zero() {
+        x.div(y)
+    } else {
+        L::zero()
+    }
 }

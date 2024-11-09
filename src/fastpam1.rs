@@ -40,74 +40,74 @@ use std::convert::From;
 /// println!("Loss is: {}", loss);
 /// ```
 pub fn fastpam1<M, N, L>(
-	mat: &M,
-	med: &mut [usize],
-	maxiter: usize,
+    mat: &M,
+    med: &mut [usize],
+    maxiter: usize,
 ) -> (L, Vec<usize>, usize, usize)
 where
-	N: Zero + PartialOrd + Clone,
-	L: AddAssign + Signed + Zero + PartialOrd + Clone + From<N>,
-	M: ArrayAdapter<N>,
+    N: Zero + PartialOrd + Clone,
+    L: AddAssign + Signed + Zero + PartialOrd + Clone + From<N>,
+    M: ArrayAdapter<N>,
 {
-	let (n, k) = (mat.len(), med.len());
-	if k == 1 {
-		let assi = vec![0; n];
-		let (swapped, loss) = choose_medoid_within_partition::<M, N, L>(mat, &assi, med, 0);
-		return (loss, assi, 1, if swapped { 1 } else { 0 });
-	}
-	let (mut loss, mut data) = initial_assignment(mat, med);
-	debug_assert_assignment(mat, med, &data);
-	let mut removal_loss = vec![L::zero(); k];
-	let (mut n_swaps, mut iter) = (0, 0);
-	while iter < maxiter {
-		iter += 1;
-		let mut best = (L::zero(), usize::MAX, usize::MAX);
-		update_removal_loss(&data, &mut removal_loss);
-		for j in 0..n {
-			if j == med[data[j].near.i as usize] {
-				continue; // This already is a medoid
-			}
-			let (change, b) = find_best_swap(mat, &removal_loss, &data, j);
-			if change >= best.0 {
-				continue; // No improvement
-			}
-			best = (change, b, j);
-		}
-		if best.0 < L::zero() {
-			n_swaps += 1;
-			// perform the swap
-			let newloss = do_swap(mat, med, &mut data, best.1, best.2);
-			if newloss >= loss {
-				break; // Probably numerically unstable now.
-			}
-			loss = newloss;
-		} else {
-			break; // No improvement, or NaN.
-		}
-	}
-	let assi = data.iter().map(|x| x.near.i as usize).collect();
-	(loss, assi, iter, n_swaps)
+    let (n, k) = (mat.len(), med.len());
+    if k == 1 {
+        let assi = vec![0; n];
+        let (swapped, loss) = choose_medoid_within_partition::<M, N, L>(mat, &assi, med, 0);
+        return (loss, assi, 1, if swapped { 1 } else { 0 });
+    }
+    let (mut loss, mut data) = initial_assignment(mat, med);
+    debug_assert_assignment(mat, med, &data);
+    let mut removal_loss = vec![L::zero(); k];
+    let (mut n_swaps, mut iter) = (0, 0);
+    while iter < maxiter {
+        iter += 1;
+        let mut best = (L::zero(), usize::MAX, usize::MAX);
+        update_removal_loss(&data, &mut removal_loss);
+        for j in 0..n {
+            if j == med[data[j].near.i as usize] {
+                continue; // This already is a medoid
+            }
+            let (change, b) = find_best_swap(mat, &removal_loss, &data, j);
+            if change >= best.0 {
+                continue; // No improvement
+            }
+            best = (change, b, j);
+        }
+        if best.0 < L::zero() {
+            n_swaps += 1;
+            // perform the swap
+            let newloss = do_swap(mat, med, &mut data, best.1, best.2);
+            if newloss >= loss {
+                break; // Probably numerically unstable now.
+            }
+            loss = newloss;
+        } else {
+            break; // No improvement, or NaN.
+        }
+    }
+    let assi = data.iter().map(|x| x.near.i as usize).collect();
+    (loss, assi, iter, n_swaps)
 }
 
 #[cfg(test)]
 mod tests {
-	// TODO: use a larger, much more interesting example.
-	use crate::{arrayadapter::LowerTriangle, fastpam1, silhouette, util::assert_array};
+    // TODO: use a larger, much more interesting example.
+    use crate::{arrayadapter::LowerTriangle, fastpam1, silhouette, util::assert_array};
 
-	#[test]
-	fn test_fastpam1_simple() {
-		let data = LowerTriangle {
-			n: 5,
-			data: vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 1],
-		};
-		let mut meds = vec![0, 1];
-		let (loss, assi, n_iter, n_swap): (i64, _, _, _) = fastpam1(&data, &mut meds, 10);
-		let (sil, _): (f64, _) = silhouette(&data, &assi, false);
-		assert_eq!(loss, 4, "loss not as expected");
-		assert_eq!(n_swap, 1, "swaps not as expected");
-		assert_eq!(n_iter, 2, "iterations not as expected");
-		assert_array(assi, vec![0, 0, 0, 1, 1], "assignment not as expected");
-		assert_array(meds, vec![0, 3], "medoids not as expected");
-		assert_eq!(sil, 0.7522494172494172, "Silhouette not as expected");
-	}
+    #[test]
+    fn test_fastpam1_simple() {
+        let data = LowerTriangle {
+            n: 5,
+            data: vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 1],
+        };
+        let mut meds = vec![0, 1];
+        let (loss, assi, n_iter, n_swap): (i64, _, _, _) = fastpam1(&data, &mut meds, 10);
+        let (sil, _): (f64, _) = silhouette(&data, &assi, false);
+        assert_eq!(loss, 4, "loss not as expected");
+        assert_eq!(n_swap, 1, "swaps not as expected");
+        assert_eq!(n_iter, 2, "iterations not as expected");
+        assert_array(assi, vec![0, 0, 0, 1, 1], "assignment not as expected");
+        assert_array(meds, vec![0, 3], "medoids not as expected");
+        assert_eq!(sil, 0.7522494172494172, "Silhouette not as expected");
+    }
 }
