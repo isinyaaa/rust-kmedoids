@@ -2,11 +2,20 @@
 edition = "2021"
 name = "kmedoids"
 version = "0.5.2"
-authors = ["Erich Schubert <erich.schubert@tu-dortmund.de>", "Lars Lenssen <lars.lenssen@tu-dortmund.de>"]
+authors = [
+    "Erich Schubert <erich.schubert@tu-dortmund.de>",
+    "Lars Lenssen <lars.lenssen@tu-dortmund.de>",
+]
 description = "k-Medoids clustering with the FasterPAM algorithm"
 homepage = "https://github.com/kno10/rust-kmedoids"
 readme = "README.md"
-keywords = ["clustering", "machine-learning", "matrix", "optimization", "algorithm"]
+keywords = [
+    "clustering",
+    "machine-learning",
+    "matrix",
+    "optimization",
+    "algorithm",
+]
 categories = ["science", "mathematics"]
 license = "GPL-3.0-or-later"
 repository = "https://github.com/kno10/rust-kmedoids"
@@ -29,13 +38,16 @@ required-features = ["ndarray", "rand", "parallel"]
 
 [dependencies]
 num-traits = "0.2"
-ndarray = {version = "0.15", optional = true}
-rand  = {version = "0.8", optional = true}
-rayon = {version = "1.10", optional = true}
+ndarray = { version = "0.15", optional = true }
+rand = { version = "0.8", optional = true }
+rayon = { version = "1.10", optional = true }
+
+[target.'cfg(not(target_env = "msvc"))'.dependencies]
+tikv-jemallocator = { version = "0.5", features = ["profiling"] }
 
 [dev-dependencies]
 ndarray = "0.15"
-rand  = "0.8"
+rand = "0.8"
 byteorder = "1.5" # for mnist-kmedoids
 
 [features]
@@ -43,4 +55,3 @@ default = ["rand", "ndarray", "parallel"]
 parallel = ["rand", "ndarray", "rayon"]
 # Enable additional assertions
 assertions = []
-

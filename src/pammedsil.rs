@@ -130,6 +130,7 @@ where
 {
     let (n, k) = (mat.len(), med.len());
     if k == 1 {
+        // NOTE: allocation?
         let assi = vec![0; n];
         let (swapped, loss) = choose_medoid_within_partition::<M, N, L>(mat, &assi, med, 0);
         return (loss, assi, 1, if swapped { 1 } else { 0 });
@@ -391,6 +392,7 @@ mod tests {
     fn test_pammedsil() {
         let data = LowerTriangle {
             n: 5,
+            // NOTE: allocation?
             data: vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 1],
         };
         let (loss, assi, meds, n_iter, n_swap): (f64, _, _, _, _) = pammedsil(&data, 3, 10);
@@ -407,7 +409,9 @@ mod tests {
             msil, 0.9047619047619048,
             "Medoid Silhouettte not as expected"
         );
+        // NOTE: allocation?
         assert_array(assi, vec![0, 0, 2, 1, 1], "assignment not as expected");
+        // NOTE: allocation?
         assert_array(meds, vec![0, 3, 2], "medoids not as expected");
         assert_eq!(sil, 0.5622222222222222, "Silhouette not as expected");
     }
@@ -416,8 +420,10 @@ mod tests {
     fn testpammedsil_simple() {
         let data = LowerTriangle {
             n: 5,
+            // NOTE: allocation?
             data: vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 1],
         };
+        // NOTE: allocation?
         let mut meds = vec![0, 1, 2];
         let (loss, assi, n_iter, n_swap): (f64, _, _, _) = pammedsil_swap(&data, &mut meds, 10);
         let (sil, _): (f64, _) = silhouette(&data, &assi, false);
@@ -433,7 +439,9 @@ mod tests {
         );
         assert_eq!(n_swap, 1, "swaps not as expected");
         assert_eq!(n_iter, 2, "iterations not as expected");
+        // NOTE: allocation?
         assert_array(assi, vec![0, 0, 2, 1, 1], "assignment not as expected");
+        // NOTE: allocation?
         assert_array(meds, vec![0, 3, 2], "medoids not as expected");
         assert_eq!(sil, 0.5622222222222222, "Silhouette not as expected");
     }
@@ -442,8 +450,10 @@ mod tests {
     fn testpammedsil_simple2() {
         let data = LowerTriangle {
             n: 5,
+            // NOTE: allocation?
             data: vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 1],
         };
+        // NOTE: allocation?
         let mut meds = vec![0, 1];
         let (loss, assi, n_iter, n_swap): (f64, _, _, _) = pammedsil_swap(&data, &mut meds, 10);
         let (sil, _): (f64, _) = silhouette(&data, &assi, false);
@@ -459,7 +469,9 @@ mod tests {
         );
         assert_eq!(n_swap, 1, "swaps not as expected");
         assert_eq!(n_iter, 2, "iterations not as expected");
+        // NOTE: allocation?
         assert_array(assi, vec![0, 0, 0, 1, 1], "assignment not as expected");
+        // NOTE: allocation?
         assert_array(meds, vec![0, 4], "medoids not as expected");
         assert_eq!(sil, 0.7522494172494172, "Silhouette not as expected");
     }

@@ -53,6 +53,7 @@ where
     M: ArrayAdapter<N>,
 {
     assert!(mat.is_square(), "Dissimilarity matrix is not square");
+    // NOTE: allocation?
     let mut sil = vec![L::zero(); if samples { assi.len() } else { 0 }];
     let mut lsum: L = L::zero();
     let mut buf = Vec::<(u32, L)>::new();
@@ -149,6 +150,7 @@ where
     let (n, k) = (mat.len(), meds.len());
     assert!(mat.is_square(), "Dissimilarity matrix is not square");
     assert!(n <= u32::MAX as usize, "N is too large");
+    // NOTE: allocation?
     let mut sil = vec![L::one(); if samples { n } else { 0 }];
     if k == 1 {
         return (L::one(), sil);

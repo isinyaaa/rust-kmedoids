@@ -43,6 +43,7 @@ where
     L: AddAssign + Signed + Zero + PartialOrd + Clone + From<N>,
     M: ArrayAdapter<N>,
 {
+    // NOTE: allocation?
     let mut assi = vec![usize::MAX; mat.len()];
     let mut loss: L = assign_nearest(mat, med, &mut assi);
     let mut iter = 0;
@@ -103,14 +104,18 @@ mod tests {
     fn test_alternating() {
         let data = LowerTriangle {
             n: 5,
+            // NOTE: allocation?
             data: vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 1],
         };
+        // NOTE: allocation?
         let mut meds = vec![0, 1];
         let (loss, assi, n_iter): (i64, _, _) = alternating(&data, &mut meds, 10);
         let (sil, _): (f64, _) = silhouette(&data, &assi, false);
         assert_eq!(n_iter, 3, "iterations not as expected");
         assert_eq!(loss, 4, "loss not as expected");
+        // NOTE: allocation?
         assert_array(assi, vec![1, 1, 1, 0, 0], "assignment not as expected");
+        // NOTE: allocation?
         assert_array(meds, vec![3, 0], "medoids not as expected");
         assert_eq!(sil, 0.7522494172494172, "Silhouette not as expected");
     }

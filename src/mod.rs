@@ -62,3 +62,10 @@ pub use crate::par_fasterpam::*;
 #[cfg(feature = "parallel")]
 pub use crate::par_silhouette::*;
 pub use crate::silhouette::*;
+
+#[cfg(not(target_env = "msvc"))]
+use tikv_jemallocator::Jemalloc;
+
+#[cfg(not(target_env = "msvc"))]
+#[global_allocator]
+static GLOBAL: Jemalloc = Jemalloc;

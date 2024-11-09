@@ -71,7 +71,9 @@ where
     let (n, mut k) = (mat.len(), med.len());
     let minimum_k = min(max(mink, 1), k);
     if k == 1 {
+        // NOTE: allocation?
         let mut return_loss = vec![L::zero(); 1_usize];
+        // NOTE: allocation?
         let assi = vec![0; n];
         let (swapped, loss) = choose_medoid_within_partition::<M, N, L>(mat, &assi, &mut med, 0);
         return_loss[0] = loss;
@@ -88,12 +90,15 @@ where
     let (mut loss, mut data): (L, _) = initial_assignment(mat, &med);
     debug_assert_assignment_th(mat, &med, &data);
 
+    // NOTE: allocation?
     let mut return_loss = vec![L::zero(); k - minimum_k + 1];
     let mut best_loss = L::zero();
+    // NOTE: allocation?
     let mut return_assi = vec![0, n];
     let mut return_iter = 0;
     let mut return_swaps = 0;
     let (mut lastswap, mut n_swaps, mut iter);
+    // NOTE: allocation?
     let mut removal_loss = vec![L::zero(); k];
     let mut return_meds = med.clone();
     while k >= 3 && k >= minimum_k {

@@ -22,6 +22,7 @@ fn bench_fasterpam(b: &mut Bencher) {
         }
     }
     b.iter(|| {
+        // NOTE: allocation?
         let mut med = vec![0, 1, 2, 3, 4];
         let (loss, assignment, _, _): (i32, _, _, _) = fasterpam(&mat, &mut med, 100);
         black_box(loss);
@@ -41,6 +42,7 @@ fn bench_rand_fasterpam(b: &mut Bencher) {
         }
     }
     b.iter(|| {
+        // NOTE: allocation?
         let mut med = vec![0, 1, 2, 3, 4];
         let (loss, assignment, _, _): (i32, _, _, _) =
             rand_fasterpam(&mat, &mut med, 100, &mut rng);
@@ -62,6 +64,7 @@ fn bench_par_fasterpam(b: &mut Bencher) {
         }
     }
     b.iter(|| {
+        // NOTE: allocation?
         let mut med = vec![0, 1, 2, 3, 4];
         let (loss, assignment, _, _): (i32, _, _, _) = par_fasterpam(&mat, &mut med, 100, &mut rng);
         black_box(loss);
@@ -81,6 +84,7 @@ fn bench_fastpam1(b: &mut Bencher) {
         }
     }
     b.iter(|| {
+        // NOTE: allocation?
         let mut med = vec![0, 1, 2, 3, 4];
         let (loss, assignment, _, _): (i32, _, _, _) = fastpam1(&mat, &mut med, 100);
         black_box(loss);
@@ -100,6 +104,7 @@ fn bench_pam_swap(b: &mut Bencher) {
         }
     }
     b.iter(|| {
+        // NOTE: allocation?
         let mut med = vec![0, 1, 2, 3, 4];
         let (loss, assignment, _, _): (i32, _, _, _) = pam_swap(&mat, &mut med, 100);
         black_box(loss);
@@ -155,6 +160,7 @@ fn bench_alternating(b: &mut Bencher) {
         }
     }
     b.iter(|| {
+        // NOTE: allocation?
         let mut med = vec![0, 1, 2, 3, 4];
         let (loss, assignment, _): (i32, _, _) = alternating(&mat, &mut med, 100);
         black_box(loss);

@@ -45,6 +45,7 @@ where
     M: ArrayAdapter<N>,
 {
     let n = mat.len();
+    // NOTE: allocation?
     let mut assi = vec![0; n];
     assign_nearest::<M, N, L>(mat, med, &mut assi);
     let (nloss, n_iter, n_swap) = pamsil_optimize(mat, med, &mut assi, maxiter);
@@ -95,6 +96,7 @@ where
     assert!(k > 0 && k < u32::MAX as usize, "invalid N");
     assert!(k <= n, "k must be at most N");
     let mut meds = Vec::<usize>::with_capacity(k);
+    // NOTE: allocation?
     let mut assi = vec![0; n];
     pamsil_build_initialize::<M, N, L>(mat, &mut meds, &mut assi, k);
     let (nloss, n_iter, n_swap) = pamsil_optimize(mat, &mut meds, &mut assi, maxiter);
@@ -228,6 +230,7 @@ mod tests {
     fn test_pamsil() {
         let data = LowerTriangle {
             n: 5,
+            // NOTE: allocation?
             data: vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 1],
         };
         let (loss, assi, meds, n_iter, n_swap): (f64, _, _, _, _) = pamsil(&data, 2, 10);
@@ -239,7 +242,9 @@ mod tests {
         assert_eq!(n_swap, 1, "swaps not as expected");
         assert_eq!(n_iter, 2, "iterations not as expected");
         assert_eq!(loss, 0.7522494172494172, "loss not as expected");
+        // NOTE: allocation?
         assert_array(assi, vec![0, 0, 0, 1, 1], "assignment not as expected");
+        // NOTE: allocation?
         assert_array(meds, vec![1, 3], "medoids not as expected");
         assert_eq!(sil, 0.7522494172494172, "Silhouette not as expected");
     }
@@ -248,6 +253,7 @@ mod tests {
     fn test_pamsil3() {
         let data = LowerTriangle {
             n: 5,
+            // NOTE: allocation?
             data: vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 1],
         };
         let (loss, assi, meds, n_iter, n_swap): (f64, _, _, _, _) = pamsil(&data, 3, 10);
@@ -259,7 +265,9 @@ mod tests {
         assert_eq!(n_swap, 1, "swaps not as expected");
         assert_eq!(n_iter, 2, "iterations not as expected");
         assert_eq!(loss, 0.5622222222222222, "loss not as expected");
+        // NOTE: allocation?
         assert_array(assi, vec![0, 0, 2, 1, 1], "assignment not as expected");
+        // NOTE: allocation?
         assert_array(meds, vec![1, 3, 2], "medoids not as expected");
         assert_eq!(sil, 0.5622222222222222, "Silhouette not as expected");
     }
@@ -268,8 +276,10 @@ mod tests {
     fn testpamsil_simple() {
         let data = LowerTriangle {
             n: 5,
+            // NOTE: allocation?
             data: vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 1],
         };
+        // NOTE: allocation?
         let mut meds = vec![0, 1, 2];
         let (loss, assi, n_iter, n_swap): (f64, _, _, _) = pamsil_swap(&data, &mut meds, 10);
         let (sil, _): (f64, _) = silhouette(&data, &assi, false);
@@ -280,7 +290,9 @@ mod tests {
         assert_eq!(loss, 0.5622222222222222, "loss not as expected");
         assert_eq!(n_swap, 1, "swaps not as expected");
         assert_eq!(n_iter, 2, "iterations not as expected");
+        // NOTE: allocation?
         assert_array(assi, vec![1, 1, 2, 0, 0], "assignment not as expected");
+        // NOTE: allocation?
         assert_array(meds, vec![3, 1, 2], "medoids not as expected");
         assert_eq!(sil, 0.5622222222222222, "Silhouette not as expected");
     }

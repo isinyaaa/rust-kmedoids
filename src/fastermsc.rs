@@ -61,6 +61,7 @@ where
 {
     let (n, k) = (mat.len(), med.len());
     if k == 1 {
+        // NOTE: allocation?
         let assi = vec![0; n];
         let (swapped, loss) = choose_medoid_within_partition::<M, N, L>(mat, &assi, med, 0);
         return (loss, assi, 1, if swapped { 1 } else { 0 });
@@ -72,6 +73,7 @@ where
     let (mut loss, mut data): (L, _) = initial_assignment(mat, med);
     debug_assert_assignment_th(mat, med, &data);
 
+    // NOTE: allocation?
     let mut removal_loss = vec![L::zero(); k];
     update_removal_loss(&data, &mut removal_loss);
     let (mut lastswap, mut n_swaps, mut iter) = (n, 0, 0);
@@ -117,6 +119,7 @@ where
     assert!(n <= u32::MAX as usize, "N is too large");
     assert!(k > 0 && k < u32::MAX as usize, "invalid N");
     assert!(k <= n, "k must be at most N");
+    // NOTE: allocation?
     let mut data = vec![Reco::<N>::empty(); mat.len()];
     let firstcenter = med[0];
     let loss = data
@@ -400,7 +403,9 @@ where
     assert!(mat.is_square(), "Dissimilarity matrix is not square");
     assert!(n <= u32::MAX as usize, "N is too large");
     assert!(k == 2, "k must be 2");
+    // NOTE: allocation?
     let mut assi = vec![0_usize; mat.len()];
+    // NOTE: allocation?
     let mut data = vec![(N::zero(), N::zero()); mat.len()];
     let loss = assi
         .iter_mut()
@@ -529,8 +534,10 @@ mod tests {
     fn testfastermsc_simple() {
         let data = LowerTriangle {
             n: 5,
+            // NOTE: allocation?
             data: vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 1],
         };
+        // NOTE: allocation?
         let mut meds = vec![0, 1, 2];
         let (loss, assi, n_iter, n_swap): (f64, _, _, _) = fastermsc(&data, &mut meds, 10);
         let (sil, _): (f64, _) = silhouette(&data, &assi, false);
@@ -546,7 +553,9 @@ mod tests {
         );
         assert_eq!(n_swap, 1, "swaps not as expected");
         assert_eq!(n_iter, 2, "iterations not as expected");
+        // NOTE: allocation?
         assert_array(assi, vec![0, 0, 2, 1, 1], "assignment not as expected");
+        // NOTE: allocation?
         assert_array(meds, vec![0, 3, 2], "medoids not as expected");
         assert_eq!(sil, 0.5622222222222222, "Silhouette not as expected");
     }
@@ -555,8 +564,10 @@ mod tests {
     fn testfastermsc_simple2() {
         let data = LowerTriangle {
             n: 5,
+            // NOTE: allocation?
             data: vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 1],
         };
+        // NOTE: allocation?
         let mut meds = vec![0, 1];
         let (loss, assi, n_iter, n_swap): (f64, _, _, _) = fastermsc(&data, &mut meds, 10);
         let (sil, _): (f64, _) = silhouette(&data, &assi, false);
@@ -572,7 +583,9 @@ mod tests {
         );
         assert_eq!(n_swap, 3, "swaps not as expected");
         assert_eq!(n_iter, 2, "iterations not as expected");
+        // NOTE: allocation?
         assert_array(assi, vec![0, 0, 0, 1, 1], "assignment not as expected");
+        // NOTE: allocation?
         assert_array(meds, vec![0, 4], "medoids not as expected");
         assert_eq!(sil, 0.7522494172494172, "Silhouette not as expected");
     }
